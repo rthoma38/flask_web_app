@@ -15,7 +15,7 @@ def fetch_json_data(url, auth=None):
         print(f"Error decoding JSON from {url}: {e}")
         return {}
 
-zap_api_key = 'ZAP_API_KEY'
+zap_api_key = 'd5ddjm5792pkroqp9pijvvioul'
 
 @app.route('/api/metrics')
 def api_metrics():
@@ -71,4 +71,4 @@ def index():
     return render_template('index.html', metrics=metrics)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=True)
