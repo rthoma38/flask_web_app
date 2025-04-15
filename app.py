@@ -15,8 +15,6 @@ def fetch_json_data(url, auth=None):
         print(f"Error decoding JSON from {url}: {e}")
         return {}
 
-zap_api_key = 'd5ddjm5792pkroqp9pijvvioul'
-
 @app.route('/api/metrics')
 def api_metrics():
     metrics = {
