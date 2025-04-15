@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        function refreshData() {
+            fetch('/api/anomalies')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('anomalies').innerText = data.anomalies;
+                });
+        }
+
+        setInterval(refreshData, 10000); // Refresh data every 10 seconds
+    </script>
+</head>
+<body>
+    <h1>Security Metrics Dashboard</h1>
+    <div class="metric">
+        <h2>Number of Vulnerabilities Detected by OWASP ZAP:</h2>
+        <p>{{ metrics.vulnerabilities }}</p>
+    </div>
+    <div class="metric">
+        <h2>CI/CD Pipeline Status:</h2>
+        <p>{{ metrics.ci_cd_status }}</p>
+        <p>Last Build Number: {{ metrics.ci_cd_last_build_number }}</p>
+        <p>Last Build URL: <a href="{{ metrics.ci_cd_last_build_url }}" target="_blank">{{ metrics.ci_cd_last_build_url }}</a></p>
+    </div>
+    <div class="metric">
+        <h2>Anomalies Flagged by the AI Model:</h2>
+        <p id="anomalies">{{ metrics.anomalies }}</p>
+    </div>
+</body>
+</html>
