@@ -1,6 +1,8 @@
 import requests
 from flask import Flask, render_template, jsonify
 
+app = Flask(__name__)
+
 def fetch_json_data(url, auth=None):
     try:
         response = requests.get(url, auth=auth)
@@ -13,7 +15,7 @@ def fetch_json_data(url, auth=None):
         print(f"Error decoding JSON from {url}: {e}")
         return {}
 
-zap_api_key = 'd5ddjm5792pkroqp9pijvvioul'
+zap_api_key = 'ZAP_API_KEY'
 
 @app.route('/api/metrics')
 def api_metrics():
