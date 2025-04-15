@@ -2,6 +2,8 @@ import requests
 from flask import Flask, render_template, jsonify
 
 app = Flask(__name__)
+csrf = CSRFProtect()
+csrf.init_app(app)
 
 def fetch_json_data(url, auth=None):
     try:
