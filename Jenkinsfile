@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'flask-web-app'
+        DOCKER_IMAGE = 'flask_web_app'
     }
 
     stages {
@@ -42,7 +42,7 @@ pipeline {
             steps {
                 script {
                     echo 'Generating SBOM with Syft for Flask Web App...'
-                    sh 'syft flask-web-app:latest -o spdx-json > sbom.json'
+                    sh 'syft flask_web_app:latest -o spdx-json > sbom.json'
                 }
             }
         }
@@ -51,7 +51,7 @@ pipeline {
             steps {
                 script {
                     echo 'Running vulnerability scan with Grype on Flask Web App...'
-                    sh 'grype flask-web-app:latest --fail-on high'
+                    sh 'grype flask_web_app:latest --fail-on high'
                 }
             }
         }
@@ -61,7 +61,7 @@ pipeline {
                 script {
                     // Run Trivy vulnerability scan on the Docker image built
                     echo 'Running vulnerability scan with Trivy on Flask Web App...'
-                    sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.61.0 image flask-web-app'
+                    sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.61.0 image flask_web_app'
                 }
             }
         }
