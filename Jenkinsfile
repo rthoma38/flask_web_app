@@ -12,9 +12,9 @@ pipeline {
                     // Install Syft and Grype tools
                     echo 'Installing Syft and Grype...'
                     sh '''
-                        curl -sSfL https://github.com/anchore/syft/releases/download/v0.54.0/syft-linux-amd64 -o /usr/local/bin/syft
+                        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
                         chmod +x /usr/local/bin/syft
-                        curl -sSfL https://github.com/anchore/grype/releases/download/v0.40.0/grype-linux-amd64 -o /usr/local/bin/grype
+                        curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
                         chmod +x /usr/local/bin/grype
                     '''
                 }
