@@ -10,20 +10,47 @@ node {
         }
     }
 
-    stage('OWASP ZAP DAST') {
-        echo 'Running OWASP ZAP (Iron Bank) DAST against Flask app...'
-
-        sh '''
-        docker run --rm \
-            -v $(pwd):/zap/wrk \
-            ironbank/opensource/owasp-zap/owasp-zap:v2.16.0 \
-            zap-baseline.py -t http://host.docker.internal:5000 \
-            -g gen.conf -r zap_report.html
-        '''
+    stage('OWASP ZAP Scan') {
+        steps {
+            sh '''
+                # Assuming you have a Python script (zap_scan.py) to run the ZAP scan
+                python3 zap_scan.py
+            '''
+        }
+        post {
+            always {
+                archiveArtifacts artifacts: 'zap_report.html', allowEmptyArchive: true
+            }
+        }
     }
 
-    stage('Archive ZAP Report') {
-        archiveArtifacts artifacts: '**/zap_report.html', allowEmptyArchive: true
+    stage('Trivy Scan') {
+        steps {
+            sh '''
+                docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image flask_web_app
+            '''
+        }
+        post {
+            always {
+                archiveArtifacts artifacts: 'trivy_report.json', allowEmptyArchive: true
+            }
+        }
+    }
+
+    stage('Gitleaks Scan') {
+        steps {
+            sh 'gitleaks detect --source . --report-path gitleaks_report.json'
+        }
+        post {
+            always {
+                archiveArtifacts artifacts: 'gitleaks_report.json', allowEmptyArchive: true
+            }
+        }
+    }
+
+    stage('Archive Reports') {
+        steps {
+            archiveArtifacts artifacts: '**/zap_report.html, **/trivy_report.json, **/gitleaks_report.json', allowEmptyArchive: true
+        }
     }
 }
-
