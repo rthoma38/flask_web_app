@@ -1,56 +1,47 @@
-node {
-    stage('SCM') {
-        checkout scm
-    }
+pipeline {
+    agent any
 
-    stage('SonarQube Analysis') {
-        def scannerHome = tool 'SonarQube Scanner'
-        withSonarQubeEnv() {
-            sh "${scannerHome}/bin/sonar-scanner"
+    stages {
+        stage('SCM') {
+            steps {
+                checkout scm  // This checks out the code from GitHub repository
+            }
         }
-    }
 
-    stage('OWASP ZAP Scan') {
-        steps {
-            sh '''
-                # Assuming you have a Python script (zap_scan.py) to run the ZAP scan
-                python3 zap_scan.py
-            '''
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'SonarQube Scanner'
+                    withSonarQubeEnv() {
+                        sh "${scannerHome}/bin/sonar-scanner"
+                    }
+                }
+            }
         }
-        post {
-            always {
-                archiveArtifacts artifacts: 'zap_report.html', allowEmptyArchive: true
+
+        stage('OWASP ZAP Scan') {
+            steps {
+                script {
+                    sh 'python3 zap_scan.py'  // Runs the ZAP scan script
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'zap_report.html', allowEmptyArchive: true  // Archives the ZAP report
+                }
             }
         }
     }
 
-    stage('Trivy Scan') {
-        steps {
-            sh '''
-                docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image flask_web_app
-            '''
+    post {
+        always {
+            echo 'Pipeline complete.'
         }
-        post {
-            always {
-                archiveArtifacts artifacts: 'trivy_report.json', allowEmptyArchive: true
-            }
+        success {
+            echo 'Pipeline completed successfully.'
         }
-    }
-
-    stage('Gitleaks Scan') {
-        steps {
-            sh 'gitleaks detect --source . --report-path gitleaks_report.json'
-        }
-        post {
-            always {
-                archiveArtifacts artifacts: 'gitleaks_report.json', allowEmptyArchive: true
-            }
-        }
-    }
-
-    stage('Archive Reports') {
-        steps {
-            archiveArtifacts artifacts: '**/zap_report.html, **/trivy_report.json, **/gitleaks_report.json', allowEmptyArchive: true
+        failure {
+            echo 'Pipeline failed.'
         }
     }
 }
