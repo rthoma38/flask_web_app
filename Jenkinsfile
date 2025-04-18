@@ -71,7 +71,7 @@ pipeline {
                 script {
                     sh """
                         docker run --rm \
-                            -v $(pwd):/zap/wrk \
+                            -v \$(pwd):/zap/wrk \
                             registry1.dso.mil/ironbank/opensource/owasp-zap/owasp-zap \
                             zap-baseline.py -t ${TARGET_URL} -r ${ZAP_REPORT}
                     """
