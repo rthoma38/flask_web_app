@@ -71,13 +71,4 @@ pipeline {
             }
         }
     }
-
-    post {
-        always {
-            echo "Security scan and SBOM generation completed."
-        }
-        failure {
-            echo "The pipeline failed at some point."
-        }
-    }
 }
