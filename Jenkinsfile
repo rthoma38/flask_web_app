@@ -15,7 +15,7 @@ pipeline {
             }
         }
 
-        stage('Vulnerability Scan') {
+        stage('Trivy Vulnerability Scan') {
             steps {
                 sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image flask_web_app'
             }
@@ -69,6 +69,17 @@ pipeline {
                 archiveArtifacts artifacts: "${OUTPUT_DIR}/${SBOM_FILE_TAG}", allowEmptyArchive: true
                 archiveArtifacts artifacts: "${OUTPUT_DIR}/${SBOM_FILE_JSON}", allowEmptyArchive: true
                 archiveArtifacts artifacts: 'gitleaks_report.json', allowEmptyArchive: true
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'SonarQube Scanner'
+                    withSonarQubeEnv() {
+                        sh "${scannerHome}/bin/sonar-scanner"
+                    }
+                }
             }
         }
     }
