@@ -8,7 +8,9 @@ pipeline {
         OUTPUT_DIR = 'artifact_reports'  // Directory for storing reports
         NIKTO_REPORT = 'nikto_report.txt'
         ZAP_REPORT = 'zap_report.html'
-        TARGET_URL = 'http://host.docker.internal:5000'
+        GITLEAKS_REPORT = 'gitleaks_report.json'
+        NIKTO_TARGET = 'http://localhost:5000'  // Nikto scans localhost
+        ZAP_TARGET = 'http://host.docker.internal:5000'  // ZAP scans Docker network
     }
 
     stages {
@@ -18,7 +20,7 @@ pipeline {
             }
         }
 
-        stage('Vulnerability Scan') {
+        stage('Vulnerability Scan (Trivy)') {
             steps {
                 sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image flask_web_app'
             }
@@ -48,7 +50,7 @@ pipeline {
         stage('Run Gitleaks Scan') {
             steps {
                 script {
-                    def result = sh(script: 'gitleaks detect --source . --report-path gitleaks_report.json', returnStatus: true)
+                    def result = sh(script: 'gitleaks detect --source . --report-path ${GITLEAKS_REPORT}', returnStatus: true)
                     if (result != 0) {
                         echo "Gitleaks found leaks, but continuing the pipeline."
                     } else {
@@ -61,7 +63,7 @@ pipeline {
         stage('Run Nikto Scan') {
             steps {
                 script {
-                    sh "nikto -h ${TARGET_URL} -output ${NIKTO_REPORT}"
+                    sh "nikto -h ${NIKTO_TARGET} -output ${NIKTO_REPORT}"
                 }
             }
         }
@@ -71,9 +73,8 @@ pipeline {
                 script {
                     sh """
                         docker run --rm \
-                            -v \$(pwd):/zap/wrk \
                             registry1.dso.mil/ironbank/opensource/owasp-zap/owasp-zap \
-                            zap-baseline.py -t ${TARGET_URL} -r ${ZAP_REPORT}
+                            zap-baseline.py -t ${ZAP_TARGET} -r ${ZAP_REPORT}
                     """
                 }
             }
@@ -83,7 +84,7 @@ pipeline {
             steps {
                 archiveArtifacts artifacts: "${OUTPUT_DIR}/${SBOM_FILE_TAG}", allowEmptyArchive: true
                 archiveArtifacts artifacts: "${OUTPUT_DIR}/${SBOM_FILE_JSON}", allowEmptyArchive: true
-                archiveArtifacts artifacts: 'gitleaks_report.json', allowEmptyArchive: true
+                archiveArtifacts artifacts: "${GITLEAKS_REPORT}", allowEmptyArchive: true
                 archiveArtifacts artifacts: "${NIKTO_REPORT}", allowEmptyArchive: true
                 archiveArtifacts artifacts: "${ZAP_REPORT}", allowEmptyArchive: true
             }
