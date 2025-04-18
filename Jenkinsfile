@@ -42,6 +42,7 @@ pipeline {
                             anchore/syft:latest \
                             ${IMAGE_NAME} -o spdx-json > ${OUTPUT_DIR}/${SBOM_FILE_JSON}
                     """
+                    echo "Security scan and SBOM generation completed."
                 }
             }
         }
