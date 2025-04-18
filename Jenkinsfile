@@ -74,7 +74,7 @@ pipeline {
                     sh """
                         docker run --rm \
                             registry1.dso.mil/ironbank/opensource/owasp-zap/owasp-zap \
-                            zap-baseline.py -t ${ZAP_TARGET} -r ${ZAP_REPORT}
+                            zap-baseline.py -t ${ZAP_TARGET} -r ${ZAP_REPORT} --autooff
                     """
                 }
             }
