@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('SCM') {
             steps {
-                checkout scm  // This checks out the code from GitHub repository
+                checkout scm  // Checks out the code from GitHub repository
             }
         }
 
@@ -19,29 +19,10 @@ pipeline {
             }
         }
 
-        stage('OWASP ZAP Scan') {
+        stage('Vulnerability Scan') {
             steps {
-                script {
-                    sh 'python3 zap_scan.py'  // Runs the ZAP scan script
-                }
+                sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image flask_web_app'
             }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'zap_report.html', allowEmptyArchive: true  // Archives the ZAP report
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            echo 'Pipeline complete.'
-        }
-        success {
-            echo 'Pipeline completed successfully.'
-        }
-        failure {
-            echo 'Pipeline failed.'
         }
     }
 }
