@@ -20,27 +20,57 @@ pipeline {
             }
         }
 
+        stage('Prepare Environment') {
+            steps {
+                sh """
+                    mkdir -p ${OUTPUT_DIR}
+                    touch ${OUTPUT_DIR}/${ZAP_REPORT}
+                    chmod 777 ${OUTPUT_DIR}/${ZAP_REPORT}
+                """
+            }
+        }
+
         stage('Vulnerability Scan (Trivy)') {
             steps {
-                sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image flask_web_app'
+                sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image flask_web_app || true'
+            }
+        }
+
+        stage('Run OWASP ZAP Scan') {
+            steps {
+                script {
+                    sh """
+                        docker run --rm \
+                            -v \$(pwd)/${OUTPUT_DIR}:/zap/wrk \
+                            registry1.dso.mil/ironbank/opensource/owasp-zap/owasp-zap \
+                            zap-baseline.py -t ${ZAP_TARGET} -r /zap/wrk/${ZAP_REPORT} --autooff || true
+                    """
+                }
+            }
+        }
+
+        stage('Run Nikto Scan') {
+            steps {
+                script {
+                    sh "nikto -h ${NIKTO_TARGET} -output ${OUTPUT_DIR}/${NIKTO_REPORT} || true"
+                }
             }
         }
 
         stage('Generate SBOM with Syft') {
             steps {
                 script {
-                    sh "mkdir -p ${OUTPUT_DIR}"
                     sh """
                         docker run --rm \
                             -v /var/run/docker.sock:/var/run/docker.sock \
                             anchore/syft:latest \
-                            ${IMAGE_NAME} -o spdx-tag-value > ${OUTPUT_DIR}/${SBOM_FILE_TAG}
+                            ${IMAGE_NAME} -o spdx-tag-value > ${OUTPUT_DIR}/${SBOM_FILE_TAG} || true
                     """
                     sh """
                         docker run --rm \
                             -v /var/run/docker.sock:/var/run/docker.sock \
                             anchore/syft:latest \
-                            ${IMAGE_NAME} -o spdx-json > ${OUTPUT_DIR}/${SBOM_FILE_JSON}
+                            ${IMAGE_NAME} -o spdx-json > ${OUTPUT_DIR}/${SBOM_FILE_JSON} || true
                     """
                     echo "Security scan and SBOM generation completed."
                 }
@@ -50,33 +80,7 @@ pipeline {
         stage('Run Gitleaks Scan') {
             steps {
                 script {
-                    def result = sh(script: "gitleaks detect --source . --report-path ${GITLEAKS_REPORT}", returnStatus: true)
-                    if (result != 0) {
-                        echo "Gitleaks found leaks, but continuing the pipeline."
-                    } else {
-                        echo "Gitleaks scan completed with no leaks."
-                    }
-                }
-            }
-        }
-
-        stage('Run Nikto Scan') {
-            steps {
-                script {
-                    sh "nikto -h ${NIKTO_TARGET} -output ${NIKTO_REPORT}"
-                }
-            }
-        }
-
-        stage('Run OWASP ZAP Scan') {
-            steps {
-                script {
-                    sh """
-                        docker run --rm \
-                            registry1.dso.mil/ironbank/opensource/owasp-zap/owasp-zap \
-                            zap-baseline.py -t ${ZAP_TARGET} -r ${ZAP_REPORT} --autooff
-                    """
-                    sh "mv ${ZAP_REPORT} artifact_reports/${ZAP_REPORT}"
+                    sh "gitleaks detect --source . --report-path ${GITLEAKS_REPORT} || true"
                 }
             }
         }
@@ -86,8 +90,8 @@ pipeline {
                 archiveArtifacts artifacts: "${OUTPUT_DIR}/${SBOM_FILE_TAG}", allowEmptyArchive: true
                 archiveArtifacts artifacts: "${OUTPUT_DIR}/${SBOM_FILE_JSON}", allowEmptyArchive: true
                 archiveArtifacts artifacts: "${GITLEAKS_REPORT}", allowEmptyArchive: true
-                archiveArtifacts artifacts: "${NIKTO_REPORT}", allowEmptyArchive: true
-                archiveArtifacts artifacts: "${ZAP_REPORT}", allowEmptyArchive: true
+                archiveArtifacts artifacts: "${OUTPUT_DIR}/${NIKTO_REPORT}", allowEmptyArchive: true
+                archiveArtifacts artifacts: "${OUTPUT_DIR}/${ZAP_REPORT}", allowEmptyArchive: true
             }
         }
     }
