@@ -6,6 +6,8 @@ pipeline {
         SBOM_FILE_TAG = 'syft_sbom.spdx.tag'
         SBOM_FILE_JSON = 'syft_sbom.spdx.json'
         OUTPUT_DIR = 'artifact_reports'  // Directory for storing reports
+        NIKTO_REPORT = 'nikto_report.txt'
+        TARGET_URL = 'http://localhost:5000'  // Replace with your actual app URL
     }
 
     stages {
@@ -15,7 +17,7 @@ pipeline {
             }
         }
 
-        stage('Trivy Vulnerability Scan') {
+        stage('Vulnerability Scan') {
             steps {
                 sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image flask_web_app'
             }
@@ -63,23 +65,22 @@ pipeline {
             }
         }
 
+        stage('Run Nikto Scan') {
+            steps {
+                script {
+                    // Run Nikto scan and save output to a report
+                    sh "nikto -h ${TARGET_URL} -output ${NIKTO_REPORT}"
+                }
+            }
+        }
+
         stage('Archive Reports') {
             steps {
                 // Archive all reports regardless of the outcome
                 archiveArtifacts artifacts: "${OUTPUT_DIR}/${SBOM_FILE_TAG}", allowEmptyArchive: true
                 archiveArtifacts artifacts: "${OUTPUT_DIR}/${SBOM_FILE_JSON}", allowEmptyArchive: true
                 archiveArtifacts artifacts: 'gitleaks_report.json', allowEmptyArchive: true
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    def scannerHome = tool 'SonarQube Scanner'
-                    withSonarQubeEnv() {
-                        sh "${scannerHome}/bin/sonar-scanner"
-                    }
-                }
+                archiveArtifacts artifacts: "${NIKTO_REPORT}", allowEmptyArchive: true
             }
         }
     }
