@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'flask_web_app:latest'
+        TRIVY_IMAGE_NAME = 'flask_web_app:latest'
         SBOM_FILE_TAG = 'syft_sbom.spdx.tag'
         SBOM_FILE_JSON = 'syft_sbom.spdx.json'
         OUTPUT_DIR = 'artifact_reports'  // Directory for storing reports
