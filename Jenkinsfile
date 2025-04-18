@@ -50,7 +50,7 @@ pipeline {
         stage('Run Gitleaks Scan') {
             steps {
                 script {
-                    def result = sh(script: 'gitleaks detect --source . --report-path ${GITLEAKS_REPORT}', returnStatus: true)
+                    def result = sh(script: "gitleaks detect --source . --report-path ${GITLEAKS_REPORT}", returnStatus: true)
                     if (result != 0) {
                         echo "Gitleaks found leaks, but continuing the pipeline."
                     } else {
@@ -76,6 +76,7 @@ pipeline {
                             registry1.dso.mil/ironbank/opensource/owasp-zap/owasp-zap \
                             zap-baseline.py -t ${ZAP_TARGET} -r ${ZAP_REPORT} --autooff
                     """
+                    sh "mv ${ZAP_REPORT} artifact_reports/${ZAP_REPORT}"
                 }
             }
         }
