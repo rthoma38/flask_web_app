@@ -8,7 +8,7 @@ pipeline {
         OUTPUT_DIR = 'artifact_reports'  // Directory for storing reports
         NIKTO_REPORT = 'nikto_report.txt'
         ZAP_REPORT = 'zap_report.html'
-        TARGET_URL = 'http://localhost:5000'
+        TARGET_URL = 'http://host.docker.internal:5000'
     }
 
     stages {
