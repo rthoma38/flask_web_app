@@ -109,7 +109,7 @@ pipeline {
             steps {
                 archiveArtifacts artifacts: "${OUTPUT_DIR}/${SBOM_FILE_TAG}", allowEmptyArchive: true
                 archiveArtifacts artifacts: "${OUTPUT_DIR}/${SBOM_FILE_JSON}", allowEmptyArchive: true
-                archiveArtifacts artifacts: "${GITLEAKS_REPORT}", allowEmptyArchive: true
+                archiveArtifacts artifacts: "${OUTPUT_DIR)/{GITLEAKS_REPORT}", allowEmptyArchive: true
                 archiveArtifacts artifacts: "${OUTPUT_DIR}/${NIKTO_REPORT}", allowEmptyArchive: true
                 archiveArtifacts artifacts: "${OUTPUT_DIR}/${ZAP_REPORT}", allowEmptyArchive: true
             }
