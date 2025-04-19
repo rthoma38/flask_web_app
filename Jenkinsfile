@@ -5,7 +5,7 @@ pipeline {
         IMAGE_NAME = 'flask_web_app:latest'
         SBOM_FILE_TAG = 'syft_sbom.spdx.tag'
         SBOM_FILE_JSON = 'syft_sbom.spdx.json'
-        OUTPUT_DIR = '/elk_stash/artifact_reports'  // Directory for storing reports
+        OUTPUT_DIR = 'artifact_reports'  // Directory for storing reports
         NIKTO_REPORT = 'nikto_report.txt'
         ZAP_REPORT = 'zap_report.html'
         GITLEAKS_REPORT = 'gitleaks_report.json'
