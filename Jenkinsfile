@@ -11,7 +11,7 @@ pipeline {
         GITLEAKS_REPORT = 'gitleaks_report.json'
         NIKTO_TARGET = 'http://localhost:5000'  // Nikto scans localhost
         ZAP_TARGET = 'http://host.docker.internal:5000'  // ZAP scans Docker network
-        SONAR_PROJECT_KEY = 'flask_web_app'
+        SONAR_PROJECT_KEY = 'capstone'
         SONARQUBE_URL = 'http://host.docker.internal:9000'
     }
 
