@@ -11,6 +11,8 @@ pipeline {
         GITLEAKS_REPORT = 'gitleaks_report.json'
         NIKTO_TARGET = 'http://localhost:5000'  // Nikto scans localhost
         ZAP_TARGET = 'http://host.docker.internal:5000'  // ZAP scans Docker network
+        SONAR_PROJECT_KEY = 'flask_web_app'
+        SONARQUBE_URL = 'http://host.docker.internal:9000'
     }
 
     stages {
@@ -81,6 +83,24 @@ pipeline {
             steps {
                 script {
                     sh "gitleaks detect --source . --report-path ${GITLEAKS_REPORT} || true"
+                }
+            }
+        }
+
+        stage('Run SonarQube Scan') {
+            steps {
+                withSonarQubeEnv('SonarQube Scanner') {
+                    withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+                        sh '''
+                            docker run --rm \
+                                -v $(pwd):/usr/src \
+                                sonarsource/sonar-scanner-cli \
+                                -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+                                -Dsonar.sources=. \
+                                -Dsonar.host.url=$SONARQUBE_URL \
+                                -Dsonar.token=$SONAR_TOKEN || true
+                        '''
+                    }
                 }
             }
         }
